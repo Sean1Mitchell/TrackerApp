@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="description" content="Track your university, fitness, and diet goals">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Tracker">
+    <link rel="manifest" href="#" id="manifest-placeholder">
+    <title>Tracker App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --accent: #4CAF50;
+            --border: #e0e0e0;
+            --card-bg: #ffffff;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --accent: #66BB6A;
+            --border: #404040;
+            --card-bg: #2d2d2d;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            width: 430px;
+            margin: 0 auto;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 20px;
+            background-color: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .card h3 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--accent);
+            transition: width 0.3s;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .setting-label {
+            font-size: 16px;
+        }
+
+        .toggle {
+            position: relative;
+            width: 50px;
+            height: 28px;
+            background-color: var(--border);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .toggle.active {
+            background-color: var(--accent);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 22px;
+            height: 22px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle.active .toggle-slider {
+            transform: translateX(22px);
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 430px;
+            background-color: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+            box-shadow: 0 -2px 10px var(--shadow);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px;
+            color: var(--text-secondary);
+            transition: color 0.2s;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: 11px;
+        }
+
+        .workout-item, .meal-item, .course-item {
+            padding: 12px;
+            background-color: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .item-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .item-detail {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            margin-top: 24px;
+        }
+
+        .section-title:first-child {
+            margin-top: 0;
+        }
+
+        .install-banner {
+            background-color: var(--accent);
+            color: white;
+            padding: 12px 20px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .install-banner.show {
+            display: flex;
+        }
+
+        .install-btn {
+            background-color: white;
+            color: var(--accent);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .close-banner {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="install-banner" id="install-banner">
+        <span>Install app for better experience</span>
+        <div>
+            <button class="install-btn" id="install-btn">Install</button>
+            <button class="close-banner" id="close-banner">×</button>
+        </div>
+    </div>
+
+    <div class="header">
+        <h1 id="page-title">Dashboard</h1>
+    </div>
+
+    <div class="main-content">
+        <!-- Dashboard Page -->
+        <div id="dashboard" class="page active">
+            <div class="card">
+                <h3>Today's Overview</h3>
+                <div class="stat-row">
+                    <span class="stat-label">Steps</span>
+                    <span class="stat-value">8,542 / 10,000</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 85%;"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Calories</h3>
+                <div class="stat-row">
+                    <span class="stat-label">Consumed</span>
+                    <span class="stat-value">1,845 cal</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Burned</span>
+                    <span class="stat-value">425 cal</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Net</span>
+                    <span class="stat-value">1,420 / 2,000</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>University Progress</h3>
+                <div class="stat-row">
+                    <span class="stat-label">Assignments Due</span>
+                    <span class="stat-value">3</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Classes Today</span>
+                    <span class="stat-value">2 Remaining</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Study Hours</span>
+                    <span class="stat-value">4.5 / 6</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Quick Stats</h3>
+                <p>You're doing great! Keep up the momentum.</p>
+                <div class="stat-row">
+                    <span class="stat-label">Water Intake</span>
+                    <span class="stat-value">6 / 8 glasses</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Sleep</span>
+                    <span class="stat-value">7.5 hours</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- University Page -->
+        <div id="university" class="page">
+            <div class="card">
+                <h3>Current Semester</h3>
+                <div class="stat-row">
+                    <span class="stat-label">GPA</span>
+                    <span class="stat-value">3.8</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Credits</span>
+                    <span class="stat-value">15 / 120</span>
+                </div>
+            </div>
+
+            <h2 class="section-title">Courses</h2>
+            <div class="course-item">
+                <div class="item-title">Computer Science 301</div>
+                <div class="item-detail">Grade: A- | Next Class: Mon 10:00 AM</div>
+            </div>
+            <div class="course-item">
+                <div class="item-title">Data Structures</div>
+                <div class="item-detail">Grade: B+ | Next Class: Tue 2:00 PM</div>
+            </div>
+            <div class="course-item">
+                <div class="item-title">Linear Algebra</div>
+                <div class="item-detail">Grade: A | Next Class: Wed 9:00 AM</div>
+            </div>
+            <div class="course-item">
+                <div class="item-title">Software Engineering</div>
+                <div class="item-detail">Grade: A | Next Class: Thu 1:00 PM</div>
+            </div>
+
+            <h2 class="section-title">Upcoming Assignments</h2>
+            <div class="card">
+                <h3>Algorithm Project</h3>
+                <p>Due: January 5, 2025</p>
+                <p>Status: In Progress</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 60%;"></div>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Math Problem Set 7</h3>
+                <p>Due: January 3, 2025</p>
+                <p>Status: Not Started</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 0%;"></div>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Software Design Document</h3>
+                <p>Due: January 8, 2025</p>
+                <p>Status: Completed</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100%;"></div>
+                </div>
+            </div>
+
+            <h2 class="section-title">Study Sessions</h2>
+            <div class="card">
+                <div class="stat-row">
+                    <span class="stat-label">Monday</span>
+                    <span class="stat-value">3.5 hours</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Tuesday</span>
+                    <span class="stat-value">4 hours</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Wednesday</span>
+                    <span class="stat-value">2.5 hours</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Week Total</span>
+                    <span class="stat-value">18 hours</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fitness Page -->
+        <div id="fitness" class="page">
+            <div class="card">
+                <h3>Fitness Goals</h3>
+                <div class="stat-row">
+                    <span class="stat-label">Weight Goal</span>
+                    <span class="stat-value">75 kg / 70 kg</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Workout Streak</span>
+                    <span class="stat-value">12 days</span>
+                </div>
+            </div>
+
+            <h2 class="section-title">Today's Workout</h2>
+            <div class="workout-item">
+                <div class="item-title">Morning Run</div>
+                <div class="item-detail">5.2 km | 28 min | 285 cal</div>
+            </div>
+            <div class="workout-item">
+                <div class="item-title">Strength Training</div>
+                <div class="item-detail">Upper Body | 45 min | 220 cal</div>
+            </div>
+
+            <h2 class="section-title">Weekly Activity</h2>
+            <div class="card">
+                <div class="stat-row">
+                    <span class="stat-label">Cardio</span>
+                    <span class="stat-value">180 min</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Strength</span>
+                    <span class="stat-value">150 min</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Flexibility</span>
+                    <span class="stat-value">60 min</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Total Calories</span>
+                    <span class="stat-value">2,450 cal</span>
+                </div>
+            </div>
+
+            <h2 class="section-title">Workout History</h2>
+            <div class="workout-item">
+                <div class="item-title">Evening Yoga</div>
+                <div class="item-detail">Yesterday | 30 min | 85 cal</div>
+            </div>
+            <div class="workout-item">
+                <div class="item-title">Cycling</div>
+                <div class="item-detail">Dec 28 | 12 km | 310 cal</div>
+            </div>
+            <div class="workout-item">
+                <div class="item-title">Swimming</div>
+                <div class="item-detail">Dec 27 | 1.5 km | 380 cal</div>
+            </div>
+            <div class="workout-item">
+                <div class="item-title">HIIT Training</div>
+                <div class="item-detail">Dec 26 | 25 min | 295 cal</div>
+            </div>
+
+            <h2 class="section-title">Body Measurements</h2>
+            <div class="card">
+                <div class="stat-row">
+                    <span class="stat-label">Weight</span>
+                    <span class="stat-value">75 kg</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Body Fat</span>
+                    <span class="stat-value">18%</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Muscle Mass</span>
+                    <span class="stat-value">58 kg</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">BMI</span>
+                    <span class="stat-value">23.4</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diet Page -->
+        <div id="diet" class="page">
+            <div class="card">
+                <h3>Daily Nutrition Goals</h3>
+                <div class="stat-row">
+                    <span class="stat-label">Calories</span>
+                    <span class="stat-value">1,845 / 2,000</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 92%;"></div>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Protein</span>
+                    <span class="stat-value">125g / 150g</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 83%;"></div>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Carbs</span>
+                    <span class="stat-value">185g / 200g</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 92%;"></div>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Fats</span>
+                    <span class="stat-value">52g / 65g</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 80%;"></div>
+                </div>
+            </div>
+
+            <h2 class="section-title">Today's Meals</h2>
+            <div class="meal-item">
+                <div class="item-title">Breakfast - Oatmeal Bowl</div>
+                <div class="item-detail">420 cal | P: 15g | C: 68g | F: 12g</div>
+            </div>
+            <div class="meal-item">
+                <div class="item-title">Snack - Greek Yogurt</div>
+                <div class="item-detail">150 cal | P: 18g | C: 12g | F: 4g</div>
+            </div>
+            <div class="meal-item">
+                <div class="item-title">Lunch - Grilled Chicken Salad</div>
+                <div class="item-detail">485 cal | P: 42g | C: 35g | F: 18g</div>
+            </div>
+            <div class="meal-item">
+                <div class="item-title">Snack - Protein Shake</div>
+                <div class="item-detail">180 cal | P: 25g | C: 8g | F: 3g</div>
+            </div>
+            <div class="meal-item">
+                <div class="item-title">Dinner - Salmon with Quinoa</div>
+                <div class="item-detail">610 cal | P: 45g | C: 52g | F: 22g</div>
+            </div>
+
+            <h2 class="section-title">Water Intake</h2>
+            <div class="card">
+                <div class="stat-row">
+                    <span class="stat-label">Today</span>
+                    <span class="stat-value">1,800 ml / 2,400 ml</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 75%;"></div>
+                </div>
+            </div>
+
+            <h2 class="section-title">Meal Plan</h2>
+            <div class="card">
+                <h3>Tomorrow's Plan</h3>
+                <p><strong>Breakfast:</strong> Scrambled eggs with avocado toast</p>
+                <p><strong>Lunch:</strong> Turkey wrap with mixed greens</p>
+                <p><strong>Dinner:</strong> Lean beef stir-fry with vegetables</p>
+                <div class="stat-row">
+                    <span class="stat-label">Planned Calories</span>
+                    <span class="stat-value">1,950 cal</span>
+                </div>
+            </div>
+
+            <h2 class="section-title">Weekly Summary</h2>
+            <div class="card">
+                <div class="stat-row">
+                    <span class="stat-label">Avg Daily Calories</span>
+                    <span class="stat-value">1,920 cal</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Protein Average</span>
+                    <span class="stat-value">132g</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Days on Track</span>
+                    <span class="stat-value">6 / 7</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Page -->
+        <div id="settings" class="page">
+            <h2 class="section-title">Appearance</h2>
+            <div class="setting-item">
+                <span class="setting-label">Dark Mode</span>
+                <div class="toggle" id="theme-toggle">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+
+            <h2 class="section-title">Notifications</h2>
+            <div class="setting-item">
+                <span class="setting-label">Workout Reminders</span>
+                <div class="toggle active">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">Meal Tracking</span>
+                <div class="toggle active">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+            <div class="setting-item">
+                <span class="setting-label">Assignment Alerts</span>
+                <div class="toggle active">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+
+            <h2 class="section-title">Goals</h2>
+            <div class="card">
+                <h3>Daily Step Goal</h3>
+                <p>10,000 steps</p>
+            </div>
+            <div class="card">
+                <h3>Calorie Goal</h3>
+                <p>2,000 calories</p>
+            </div>
+            <div class="card">
+                <h3>Study Hours Goal</h3>
+                <p>6 hours per day</p>
+            </div>
+
+            <h2 class="section-title">Account</h2>
+            <div class="card">
+                <h3>Profile</h3>
+                <p>Name: John Doe</p>
+                <p>Email: john.doe@university.edu</p>
+                <p>Member since: September 2024</p>
+            </div>
+
+            <h2 class="section-title">Data</h2>
+            <div class="setting-item">
+                <span class="setting-label">Sync Data</span>
+                <div class="toggle active">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+            <div class="card">
+                <h3>Storage Used</h3>
+                <p>245 MB / 1 GB</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 24.5%;"></div>
+                </div>
+            </div>
+
+            <h2 class="section-title">About</h2>
+            <div class="card">
+                <p>Version 1.0.0</p>
+                <p>© 2025 Tracker App</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="nav-item active" data-page="dashboard">
+            <div class="nav-icon">📊</div>
+            <div class="nav-label">Dashboard</div>
+        </div>
+        <div class="nav-item" data-page="university">
+            <div class="nav-icon">🎓</div>
+            <div class="nav-label">University</div>
+        </div>
+        <div class="nav-item" data-page="fitness">
+            <div class="nav-icon">💪</div>
+            <div class="nav-label">Fitness</div>
+        </div>
+        <div class="nav-item" data-page="diet">
+            <div class="nav-icon">🥗</div>
+            <div class="nav-label">Diet</div>
+        </div>
+        <div class="nav-item" data-page="settings">
+            <div class="nav-icon">⚙️</div>
+            <div class="nav-label">Settings</div>
+        </div>
+    </div>
+
+    <script>
+        // Generate manifest dynamically
+        const manifest = {
+            "name": "Tracker App",
+            "short_name": "Tracker",
+            "description": "Track your university, fitness, and diet goals",
+            "start_url": "./",
+            "display": "standalone",
+            "background_color": "#ffffff",
+            "theme_color": "#4CAF50",
+            "orientation": "portrait",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' fill='%234CAF50'/%3E%3Ctext x='96' y='130' font-size='100' text-anchor='middle' fill='white'%3E📊%3C/text%3E%3C/svg%3E",
+                    "sizes": "192x192",
+                    "type": "image/svg+xml",
+                    "purpose": "any maskable"
+                },
+                {
+                    "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%234CAF50'/%3E%3Ctext x='256' y='350' font-size='280' text-anchor='middle' fill='white'%3E📊%3C/text%3E%3C/svg%3E",
+                    "sizes": "512x512",
+                    "type": "image/svg+xml",
+                    "purpose": "any maskable"
+                }
+            ]
+        };
+
+        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        document.getElementById('manifest-placeholder').setAttribute('href', manifestURL);
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const swCode = `
+                    const CACHE_NAME = 'tracker-app-v1';
+                    
+                    self.addEventListener('install', (event) => {
+                        event.waitUntil(
+                            caches.open(CACHE_NAME).then((cache) => {
+                                return cache.addAll(['/']);
+                            })
+                        );
+                    });
+                    
+                    self.addEventListener('fetch', (event) => {
+                        event.respondWith(
+                            caches.match(event.request).then((response) => {
+                                return response || fetch(event.request);
+                            })
+                        );
+                    });
+                `;
+                
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swURL = URL.createObjectURL(blob);
+                
+                navigator.serviceWorker.register(swURL)
+                    .then(registration => {
+                        console.log('Service Worker registered:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+
+        // Install prompt
+        let deferredPrompt;
+        const installBanner = document.getElementById('install-banner');
+        const installBtn = document.getElementById('install-btn');
+        const closeBanner = document.getElementById('close-banner');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBanner.classList.add('show');
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response: ${outcome}`);
+                deferredPrompt = null;
+                installBanner.classList.remove('show');
+            }
+        });
+
+        closeBanner.addEventListener('click', () => {
+            installBanner.classList.remove('show');
+        });
+
+        // App functionality
+        const pages = document.querySelectorAll('.page');
+        const navItems = document.querySelectorAll('.nav-item');
+        const pageTitle = document.getElementById('page-title');
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        const pageTitles = {
+            dashboard: 'Dashboard',
+            university: 'University',
+            fitness: 'Fitness',
+            diet: 'Diet',
+            settings: 'Settings'
+        };
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const page = item.dataset.page;
+                
+                pages.forEach(p => p.classList.remove('active'));
+                navItems.forEach(n => n.classList.remove('active'));
+                
+                document.getElementById(page).classList.add('active');
+                item.classList.add('active');
+                pageTitle.textContent = pageTitles[page];
+                
+                document.querySelector('.main-content').scrollTop = 0;
+            });
+        });
+
+        themeToggle.addEventListener('click', () => {
+            themeToggle.classList.toggle('active');
+            const currentTheme = body.dataset.theme;
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            body.dataset.theme = newTheme;
+        });
+
+        document.querySelectorAll('.toggle').forEach(toggle => {
+            if (toggle.id !== 'theme-toggle') {
+                toggle.addEventListener('click', () => {
+                    toggle.classList.toggle('active');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
